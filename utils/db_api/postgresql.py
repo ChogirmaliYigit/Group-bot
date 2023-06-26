@@ -61,6 +61,17 @@ class Database:
         """
         await self.execute(sql, execute=True)
 
+    async def create_participants_table(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS Participants (
+            id SERIAL PRIMARY KEY,
+            group_id BIGINT NOT NULL,
+            user_id BIGINT NOT NULL,
+            participant_id BIGINT NOT NULL
+        );
+        """
+        await self.execute(sql, execute=True)
+
     @staticmethod
     def format_args(sql, parameters: dict):
         sql += " AND ".join(
@@ -73,8 +84,12 @@ class Database:
         return await self.execute(sql, full_name, username, telegram_id, fetchrow=True)
 
     async def add_group(self, group_id):
-        sql = "INSERT INTO groups (group_id, ) VALUES ($1, ) returning *"
+        sql = "INSERT INTO groups (group_id) VALUES ($1) returning *"
         return await self.execute(sql, group_id, fetchrow=True)
+
+    async def add_participant(self, group_id, user_id, participant_id):
+        sql = "INSERT INTO participants (group_id, user_id, participant_id) VALUES ($1, $2, $3) returning *"
+        return await self.execute(sql, group_id, user_id, participant_id, fetchrow=True)
 
     async def select_all_users(self):
         sql = "SELECT * FROM Users"
@@ -84,15 +99,24 @@ class Database:
         sql = "SELECT * FROM groups"
         return await self.execute(sql, fetch=True)
 
+    async def select_all_participants(self):
+        sql = "SELECT * FROM participants"
+        return await self.execute(sql, fetch=True)
+
     async def select_user(self, **kwargs):
         sql = "SELECT * FROM Users WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetchrow=True)
 
     async def select_group(self, **kwargs):
-        sql = "SELECT * FROM groups where"
-        sql, parameters = self.format_args(sql, parameters=parameters)
+        sql = "SELECT * FROM groups WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
         return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def select_participants(self, **kwargs):
+        sql = "SELECT * FROM participants WHERE "
+        sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetch=True)
 
     async def count_users(self):
         sql = "SELECT COUNT(*) FROM Users"

@@ -3,6 +3,7 @@ from aiogram.dispatcher.filters.builtin import CommandStart
 from loader import dp, db, bot
 from data.config import ADMINS
 from utils.extra_datas import make_title
+from keyboards.inline.buttons import groups_markup
 
 
 @dp.message_handler(CommandStart())
@@ -36,3 +37,8 @@ async def bot_start(message: types.Message):
     else:
         await bot.send_message(chat_id=ADMINS[0], text=f"[{make_title(full_name)}](tg://user?id={message.from_user.id}) bazaga oldin qo'shilgan", disable_web_page_preview=True, parse_mode=types.ParseMode.MARKDOWN_V2)
     await message.answer(f"Xush kelibsiz\! {make_title(full_name)}", parse_mode=types.ParseMode.MARKDOWN_V2)
+    groups = await db.select_all_groups()
+    if groups:
+        markup = await groups_markup(groups=groups)
+        if markup['inline_keyboard']:
+            await message.answer(text="Guruhni tanlang:", reply_markup=markup)
