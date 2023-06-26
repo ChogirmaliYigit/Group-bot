@@ -10,7 +10,6 @@ async def start_group(message: types.Message):
     chat = message.chat
     group_admins = await bot.get_chat_administrators(chat.id)
     bot_me = await bot.get_me()
-    print(bot_me)
     for admin in group_admins:
         if admin.user.id == bot_me.id:
             group = await db.select_group(group_id=chat.id)
