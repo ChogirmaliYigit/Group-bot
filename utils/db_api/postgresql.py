@@ -52,6 +52,15 @@ class Database:
         """
         await self.execute(sql, execute=True)
 
+    async def create_groups_table(self):
+        sql = """
+        CREATE TABLE IF NOT EXISTS Groups (
+            id SERIAL PRIMARY KEY,
+            group_id BIGINT NOT NULL
+        );
+        """
+        await self.execute(sql, execute=True)
+
     @staticmethod
     def format_args(sql, parameters: dict):
         sql += " AND ".join(
@@ -63,13 +72,26 @@ class Database:
         sql = "INSERT INTO users (full_name, username, telegram_id) VALUES($1, $2, $3) returning *"
         return await self.execute(sql, full_name, username, telegram_id, fetchrow=True)
 
+    async def add_group(self, group_id):
+        sql = "INSERT INTO groups (group_id, ) VALUES ($1, ) returning *"
+        return await self.execute(sql, group_id, fetchrow=True)
+
     async def select_all_users(self):
         sql = "SELECT * FROM Users"
+        return await self.execute(sql, fetch=True)
+
+    async def select_all_groups(self):
+        sql = "SELECT * FROM groups"
         return await self.execute(sql, fetch=True)
 
     async def select_user(self, **kwargs):
         sql = "SELECT * FROM Users WHERE "
         sql, parameters = self.format_args(sql, parameters=kwargs)
+        return await self.execute(sql, *parameters, fetchrow=True)
+
+    async def select_group(self, **kwargs):
+        sql = "SELECT * FROM groups where"
+        sql, parameters = self.format_args(sql, parameters=parameters)
         return await self.execute(sql, *parameters, fetchrow=True)
 
     async def count_users(self):
